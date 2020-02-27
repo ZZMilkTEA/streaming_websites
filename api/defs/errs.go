@@ -1,16 +1,18 @@
 package defs
 
 type Err struct {
-	error string `json:"error"`
-	errorCode string `json:"error_code"`
+	Error     string `json:"error"`
+	ErrorCode string `json:"error_code"`
 }
 
 type ErrorResponse struct {
-	httpSC int
-	error Err
+	HttpSC int
+	Error  Err
 }
 
 var (
-	errorRequestBodyParseFailed = ErrorResponse{httpSC: 400,error: Err{error:"Request body is not correct" , errorCode: "001"}}
-	errorNotAuthUser = ErrorResponse{httpSC: 401,error: Err{error:"User authentication failed" , errorCode: "002"}}
+	ErrorRequestBodyParseFailed = ErrorResponse{HttpSC: 400, Error: Err{Error: "Request body is not correct", ErrorCode: "001"}}
+	ErrorNotAuthUser            = ErrorResponse{HttpSC: 401, Error: Err{Error: "User authentication failed", ErrorCode: "002"}}
+	ErrorDBError                = ErrorResponse{HttpSC: 500, Error: Err{Error: "DB ops failed", ErrorCode: "003"}}
+	ErrorInternalFaults         = ErrorResponse{HttpSC: 500, Error: Err{Error: "Internal service error", ErrorCode: "004"}}
 )

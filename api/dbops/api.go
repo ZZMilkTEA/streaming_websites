@@ -4,6 +4,7 @@ import (
 	"Streaming_websites/api/defs"
 	"Streaming_websites/api/utils"
 	"database/sql"
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"time"
@@ -20,6 +21,8 @@ func AddUserCredential(loginName string, pwd string) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("User \"%s\" created success!\n", loginName)
 	defer stmtIns.Close()
 	return nil
 }
@@ -67,7 +70,7 @@ func AddNewVideo(aid int, name string) (*defs.VideoInfo, error) {
 
 	t := time.Now()
 	ctime := t.Format("Jan 02 2006, 15:04:05") //M D y, HH:MM:SS
-	stmtIns, err := dbConn.Prepare("INSERT INTO video_info (vid, author_uid, name, display_ctime) VALUES (?,?,?,?)")
+	stmtIns, err := dbConn.Prepare("INSERT INTO video_info (id, author_id, name, display_ctime) VALUES (?,?,?,?)")
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +87,7 @@ func AddNewVideo(aid int, name string) (*defs.VideoInfo, error) {
 }
 
 func GetVideoInfo(vid string) (*defs.VideoInfo, error) {
-	stmtOut, err := dbConn.Prepare("SELECT author_uid, name, display_ctime WHERE vid = ?")
+	stmtOut, err := dbConn.Prepare("SELECT author_id, name, display_ctime FROM video_info WHERE id = ?")
 
 	var (
 		aid  int
@@ -110,7 +113,7 @@ func GetVideoInfo(vid string) (*defs.VideoInfo, error) {
 }
 
 func DeleteVideo(vid string) error {
-	stmtDel, err := dbConn.Prepare("DELETE FROM video_info WHERE vid=?")
+	stmtDel, err := dbConn.Prepare("DELETE FROM video_info WHERE id=?")
 	if err != nil {
 		log.Printf("DeleteVideo error: %s", err)
 		return err
@@ -123,4 +126,52 @@ func DeleteVideo(vid string) error {
 
 	defer stmtDel.Close()
 	return nil
+}
+
+//======================comments API========================
+func AddNewComment(vid string, aid int, content string) error {
+	id, err := utils.NewUUID()
+	if err != nil {
+		return err
+	}
+
+	stmtIns, err := dbConn.Prepare("INSERT INTO comments (id, vid, author_id, content) values (?,?,?,?)")
+	if err != nil {
+		return err
+	}
+
+	_, err = stmtIns.Exec(id, vid, aid, content)
+	if err != nil {
+		return err
+	}
+
+	defer stmtIns.Close()
+	return err
+}
+
+func ListComments(vid string, from, to int) ([]*defs.Comment, error) {
+	stmtOut, err := dbConn.Prepare(`SELECT comments.id, users.login_name, comments.content from comments inner 
+											join users on comments.author_id = users.id where comments.vid = ? AND 
+											comments.time > FROM_UNIXTIME(?) AND comments.time <= FROM_UNIXTIME(?)`)
+	//右边是闭区间是因为防止漏掉最后一条评论
+
+	var res []*defs.Comment
+
+	rows, err := stmtOut.Query(vid, from, to)
+	if err != nil {
+		return res, err
+	}
+
+	for rows.Next() {
+		var id, name, content string
+		if err := rows.Scan(&id, &name, &content); err != err {
+			return res, err
+		}
+
+		c := &defs.Comment{Id: id, VideoId: vid, Author: name, Content: content}
+		res = append(res, c)
+	}
+	defer stmtOut.Close()
+
+	return res, nil
 }

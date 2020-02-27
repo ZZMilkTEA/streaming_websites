@@ -5,6 +5,23 @@ import (
 	"net/http"
 )
 
+type middleWareHandler struct {
+	r *httprouter.Router
+}
+
+func NewMiddleWareHandler(r *httprouter.Router) http.Handler {
+	m := middleWareHandler{}
+	m.r = r
+	return m
+}
+
+func (m middleWareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	//check session
+	validateUserSession(r)
+
+	m.r.ServeHTTP(w, r)
+}
+
 func RegisterHandlers() *httprouter.Router {
 	router := httprouter.New()
 
@@ -14,7 +31,8 @@ func RegisterHandlers() *httprouter.Router {
 	return router
 }
 
-func main()  {
+func main() {
 	r := RegisterHandlers()
-	http.ListenAndServe(":13111" , r)
+	mh := NewMiddleWareHandler(r)
+	http.ListenAndServe(":13111", mh)
 }
