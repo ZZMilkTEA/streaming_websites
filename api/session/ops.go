@@ -4,7 +4,7 @@ import (
 	"Streaming_websites/api/dbops"
 	"Streaming_websites/api/defs"
 	"Streaming_websites/api/utils"
-	"fmt"
+	"log"
 	"sync"
 	"time"
 )
@@ -36,7 +36,7 @@ func GenerateNewSessionId(uname string) string {
 	id, _ := utils.NewUUID()
 	ct := nowInMilli()
 	ttl := ct + 30*60*1000 // Severside session valid time : 30 min
-	fmt.Printf("The session's ttl is %d\n", ttl)
+	log.Printf("The session's ttl is %d\n", ttl)
 	ss := &defs.SimpleSession{Username: uname, TTL: ttl}
 	sessionMap.Store(id, ss)
 	dbops.InsertSession(id, ttl, uname)

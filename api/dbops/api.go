@@ -4,7 +4,6 @@ import (
 	"Streaming_websites/api/defs"
 	"Streaming_websites/api/utils"
 	"database/sql"
-	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"time"
@@ -22,7 +21,7 @@ func AddUserCredential(loginName string, pwd string) error {
 		return err
 	}
 
-	fmt.Printf("User \"%s\" created success!\n", loginName)
+	log.Printf("User \"%s\" created success!\n", loginName)
 	defer stmtIns.Close()
 	return nil
 }

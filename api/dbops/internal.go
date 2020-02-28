@@ -16,13 +16,13 @@ func InsertSession(sid string, ttl int64, uname string) error {
 		return err
 	}
 
-	fmt.Printf("The session insert SQL hat prepared")
+	fmt.Printf("The session insert SQL hat prepared\n")
 	_, err = stmtIns.Exec(sid, ttlStr, uname)
 	if err != nil {
 		return err
 	}
 
-	fmt.Print("session insert success!")
+	fmt.Print("session insert success!\n")
 
 	defer stmtIns.Close()
 	return nil
